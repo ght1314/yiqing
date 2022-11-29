@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" href="../lib/layui-v2.5.5/css/layui.css" th:href="@{../lib/layui-v2.5.5/css/layui.css}" media="all">
+    <link rel="stylesheet" href="../css/public.css" th:href="@{../css/public.css}" media="all">
+    <link rel="stylesheet" href="../css/layuimini.css?v=2.0.1" th:href="@{../css/layuimini.css?v=2.0.1}" media="all">
+
+</head>
+<div class="layuimini-main">
+
+
+    <div class="layui-form layuimini-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label required">业主编号</label>
+            <div class="layui-input-block">
+                <input type="text" name="resId" min="0"  lay-verify="required" lay-reqtext="业主编号不能为空" placeholder="请输入业主编号" value="" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label required">业主名</label>
+            <div class="layui-input-block">
+                <input type="text" name="resName"  lay-verify="required" lay-reqtext="业主名不能为空" placeholder="请输入业主名,不可重复" value="" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label required">性别</label>
+            <div class="layui-input-block">
+                <input type="radio" name="resSex" id="boy" value="男" title="男">
+                <input type="radio" name="ressex" id="girl" value="女" title="女">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label required">手机</label>
+            <div class="layui-input-block">
+                <input type="number" name="resPhone" lay-verify="required|phone|number" lay-reqtext="手机号不能为空" placeholder="请输入手机号" value="" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label required">入住时间</label>
+            <div class="layui-input-inline">
+                <input type="text" name="resIntotime" id="resIntotime" lay-verify="date|required" placeholder="入住时间:yyyy-MM-dd" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">备注信息</label>
+            <div class="layui-input-block">
+                <input type="text" name="resRemark" placeholder="备注信息" value="无" class="layui-input">
+            </div>
+        </div>
+
+
+        <div class="layui-form-item">
+            <label class="layui-form-label required">社区名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="addName" placeholder="请输入社区名称" lay-verify="required" value="和风苑" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label required">楼号</label>
+            <div class="layui-input-block">
+                <input type="number" name="addHouse" min="0" placeholder="请输入楼号" lay-verify="required" value="" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label required">单元号</label>
+            <div class="layui-input-block">
+                <input type="number" name="addUnit" min="0" placeholder="请输入单元号" lay-verify="required" value="" class="layui-input">
+            </div>
+        </div>
+
+
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveBtn">确认添加</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../lib/layui-v2.5.5/layui.js" th:src="@{../lib/layui-v2.5.5/layui.js}" charset="utf-8"></script>
+<script src="../js/lay-config.js?v=2.0.0" th:src="@{../js/lay-config.js}" charset="utf-8"></script>
+<script>
+    layui.use(['form', 'table','laydate'], function () {
+        var form = layui.form,
+            layer = layui.layer,
+            laydate = layui.laydate,
+            $ = layui.$;
+
+        /**
+         * 初始化表单，要加上，不然刷新部分组件可能会不加载
+         */
+        form.render();
+
+        // 当前弹出层，防止ID被覆盖
+        var parentIndex = layer.index;
+
+        //日期选择
+        laydate.render({
+                elem:'#resIntotime',
+                type:'date',
+                format:'yyyy-MM-dd',
+                value:new Date(),
+                min: '2000-01-01',
+            }
+        );
+
+        //监听提交
+        form.on('submit(saveBtn)', function (data) {
+            var datas = data.field;
+            if (datas.resSex == '男'){
+                datas.resSex = 0;
+            }else{
+                datas.resSex = 1;
+            }
+            var loadIndex = layer.load(2);
+            $.ajax({
+                url: '/residents/addResSubmit',
+                type: 'post',
+                data: datas,
+                dataType: "json",
+                success: function (res) {
+                    layer.close(loadIndex);
+                    if (res.code == '200') {
+                        layer.msg(res.msg, {
+                            icon: 6,
+                            time: 1000},function () {
+                            parent.window.location.reload();//刷新页面
+                            var iframeIndex = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(iframeIndex)
+                        });
+                    } else {
+                        layer.msg(res.msg, {icon: 2});
+                    }
+                }, error: function () {
+                    layer.close(loadIndex);
+                    layer.msg('网页出错了,即将跳转异常页', {icon: 2,time:1500});
+                    window.location.href = '/User/404'
+                }
+            });
+            return false;
+        });
+
+    });
+</script>
+</html>

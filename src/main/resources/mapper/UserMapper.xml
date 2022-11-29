@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.demo.mapper.UserMapper">
+
+    <select id="queryUserByParam" resultType="com.demo.dto.UserDto">
+            select u.user_id,account,password,user_name,user_phone,u.create_time,r.role_id,role_name
+            from tb_user_role t left join tb_user u on t.user_id = u.user_id left join tb_role r
+            on t.role_id = r.role_id
+        <where>
+            u.deleted = 0
+            <if test="keyword != null and keyword != '' ">
+                and CONCAT(account,user_name,role_name) like CONCAT('%',#{keyword},'%')
+            </if>
+        </where>
+    </select>
+
+<!--    找回密码相关-->
+    <select id="queryUserByAccount" parameterType="string" resultType="RetrievePwdDto">
+        select user_id,account,user_phone from tb_user where account = #{account} and deleted = 0
+    </select>
+
+    <select id="queryUserDtoByAccount" parameterType="string" resultType="UserDto">
+        select user_id,account,password,user_name,user_phone from tb_user where account = #{loginAccount} and deleted = 0
+    </select>
+
+
+
+    <insert id="addUser" parameterType="UserDto">
+        begin;
+        insert into tb_user(account,password,user_name,user_phone)
+        values (#{account},#{password},#{userName},#{userPhone});
+        insert into tb_user_role(user_id,role_id) values (LAST_INSERT_ID(),#{roleId});
+        commit;
+    </insert>
+
+
+    <update id="deleteUser" parameterType="integer">
+        update tb_user   set deleted = 1
+        where user_id in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+    </update>
+
+    <update id="updateUser" parameterType="UserDto">
+        update  tb_user_role t left join tb_role r on 	t.role_id = r.role_id
+        left join tb_user u on t.user_id = u.user_id set
+            u.password = #{password},
+            u.user_name = #{userName},
+            u.user_phone = #{userPhone},
+            r.role_name = #{roleName}
+            where u.account =#{account}
+    </update>
+
+
+    <update id="updateUserPwd" parameterType="string">
+        update tb_user set
+            password = #{newPwd}
+            where account = #{account}
+    </update>
+
+    <update id="updateUserInfo" parameterType="com.demo.dto.UserDto">
+        update tb_user set
+            user_name = #{userName},
+            user_phone = #{userPhone}
+            where account = #{account}
+    </update>
+
+    <select id="getPwdByAccount" parameterType="string" resultType="string">
+        select password from tb_user where account = #{account} and deleted = 0
+    </select>
+
+
+</mapper>

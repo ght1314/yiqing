@@ -1,0 +1,262 @@
+<div class="layuimini-container layuimini-page-anim">
+    <div class="layuimini-main">
+
+
+        <fieldset class="table-search-fieldset">
+            <legend>添加注册码</legend>
+            <div style="margin: 10px 10px 10px 10px">
+                <form class="layui-form layui-form-pane" action="" lay-filter="addSalt">
+                    <div class="layui-form-item">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">数量</label>
+                            <div class="layui-input-inline">
+                                <input type="text" id="count" name="count" autocomplete="off" class="layui-input"
+                                       placeholder="输入添加注册码数量">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                                <select name="role" lay-verify="required">
+                                    <option value="">请选择一个角色</option>
+                                    <option value="1">管理员</option>
+                                    <option value="2">用户</option>
+                                </select>
+
+                        </div>
+                        <div class="layui-inline">
+                            <button type="submit" class="layui-btn layui-btn-primary" lay-submit lay-filter="addSalt">添
+                                加
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </fieldset>
+
+        <script type="text/html" id="toolbarDemo">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="delete"> 删除</button>
+            </div>
+        </script>
+
+        <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
+
+        <script type="text/html" id="currentTableBar">
+            <a class="layui-btn layui-btn-xs layui-btn-danger data-count-delete" lay-event="delete">删除</a>
+        </script>
+
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js"></script>
+<script>
+    layui.use(['form', 'table', 'miniPage', 'element'], function () {
+        var $ = layui.jquery,
+            form = layui.form,
+            table = layui.table,
+            miniPage = layui.miniPage;
+
+        table.render({
+            //渲染的表格对应ID
+            elem: '#currentTableId',
+            url: '/Usalt/querySaltByParam',
+            toolbar: '#toolbarDemo',
+            defaultToolbar: ['filter', 'exports', 'print', {
+                title: '提示',
+                layEvent: 'LAYTABLE_TIPS',
+                icon: 'layui-icon-tips'
+            }],
+            //表头
+            cols: [
+                [
+                    {type: "checkbox", width: 80},
+                    {field: 'saltId', width: 100, title: '编号', sort: true},
+                    {field: 'saltText', width: 350, title: '注册码'},
+                    {
+                        field: '', width: 100, title: '复制', templet: function () {
+                            return ' <a class="layui-btn layui-btn-primary layui-btn-xs data-count-edit saltBtn" id="saltBtn" lay-event="copySalt">复制</a>';
+                        }
+                    },
+                    {
+                        field: 'saltStatus', width: 130, title: '状态', sort: true,
+                        templet: function (res) { //0未使用 1已使用
+                            if (res.saltStatus == '0') {
+                                return '<span class="layui-btn  layui-btn-normal layui-btn-xs">未使用</span>';
+                            } else {
+                                return '<span class="layui-btn layui-btn-warm layui-btn-xs">已使用</span>';
+                            }
+                        }
+                    },
+                    {
+                        field: 'saltRole', width: 110, title: '角色', sort: true,
+                        templet: function (res) { //0未使用 1已使用
+                            if (res.saltRole == '1') {
+                                return '<span class="layui-btn  layui-btn-normal layui-btn-xs">管理员</span>';
+                            } else {
+                                return '<span class="layui-btn  layui-btn-xs">用 户</span>';
+                            }
+                        }
+                    },
+                    {field: 'createTime', width: 0, title: '添加时间'},
+                    {title: '操作', minWidth: 130, toolbar: '#currentTableBar', align: "center"}
+                ]
+            ],
+            limits: [10, 15, 20, 25, 50, 100],//每页条数的选择项
+            curr: 1,
+            limit: 10,//每页显示的条数
+            page: true,//开启分页
+            skin: 'line',//表格的风格，外观
+            parseData: function (res) {
+                return {
+                    "code": res.code,
+                    "msg": res.msg,
+                    "count": res.count,
+                    "data": res.data.records,
+                };
+            }, done: function () {
+
+            }
+
+        });
+
+
+        //添加注册码
+        form.on('submit(addSalt)', function (data) {
+            var datas = data.field;
+            $.ajax({
+                url: '/Usalt/addSalt',
+                type: 'post',
+                data: datas,
+                dataType: "json",
+                success: function (res) {
+                    if (res.code == 200) {
+                        layer.msg(res.msg, {
+                            icon: 1,
+                            time: 1500
+                        }, function () {
+                            parent.window.location.reload();//刷新页面
+                        });
+                    } else {
+                        layer.msg(res.msg, {icon: 2, time: 1500});
+                    }
+                }, error: function () {
+                    layer.msg('网页出错了,即将跳转异常页', {icon: 2, time: 1300});
+                    setTimeout(function () {
+                        window.location.href = '/User/404'
+                    }, 1500)
+                }
+            });
+            return false;
+        });
+
+
+        /**
+         * toolbar事件监听
+         */
+        table.on('toolbar(currentTableFilter)', function (obj) {
+            if (obj.event === 'delete') {  // 监听删除操作,获取表格中选中的行数据
+                var checkStatus = table.checkStatus('currentTableId');
+                // 获取被选中记录对应的数据
+                var saleChanceData = checkStatus.data;
+                if (saleChanceData.length === 0) {
+                    layer.msg('请选择要删除的数据', {icon: 2});
+                    return;
+                }
+
+                layer.confirm('确定删除选中数据？', {icon: 3, title: "登记信息管理"}, function (index) {
+                    //关闭确认框
+                    layer.close(index);
+                    //传递的参数是数组，获取传递的ID
+                    var ids = "ids=";
+                    //循环获取选中的行的数据
+                    for (var i = 0; i < saleChanceData.length; i++) {
+                        if (i < saleChanceData.length - 1) {
+                            ids = ids + saleChanceData[i].saltId + "&ids="
+                        } else {
+                            ids = ids + saleChanceData[i].saltId
+                        }
+                    }
+                    //向服务器发送删除指令  多个删除
+                    $.ajax({
+                        url: '/Usalt/deleteSalt',
+                        type: 'POST',
+                        data: ids,
+                        success: function (suc) {
+                            if (suc.code == '200') {
+                                layer.msg("删除记录成功！", {icon: 1, time: 1000});
+                                parent.window.location.reload();
+                            } else {
+                                layer.msg("删除登记信息失败！", {icon: 5, time: 1000});
+                            }
+                        }, error: function () {
+                            layer.msg('网页出错了,即将跳转异常页', {icon: 2, time: 1300});
+                            setTimeout(function () {
+                                window.location.href = '/User/404'
+                            }, 1500)
+                        }
+                    });
+                });
+
+
+            }
+        });
+
+
+        //监听表格复选框选择
+        table.on('checkbox(currentTableFilter)', function (obj) {
+            // console.log(obj)
+        });
+
+        //表格监听，更新 删除 复制功能
+
+        table.on('tool(currentTableFilter)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'delete') {
+                layer.confirm('确定删除选中数据？', {icon: 3, title: "登记信息管理"}, function (index) {
+                    //关闭确认框
+                    console.log(obj.data);
+                    //向服务器发送删除指令  单个删除
+                    $.ajax({
+                        url: '/Usalt/deleteSalt',
+                        type: 'POST',
+                        data: {
+                            'ids': obj.data.saltId
+                        },
+                        success: function (suc) {
+                            if (suc.code == '200') {
+                                layer.msg("删除记录成功！", {icon: 1, time: 1000});
+                                parent.window.location.reload();
+                            } else {
+                                layer.msg("删除登记信息失败！", {icon: 5, time: 1000});
+                            }
+                        }, error: function () {
+                            layer.msg('网页出错了,即将跳转异常页', {icon: 2, time: 1300});
+                            setTimeout(function () {
+                                window.location.href = '/User/404'
+                            }, 1500)
+                        }
+                    });
+                });
+
+            } else if (obj.event === 'copySalt') {
+                var saltText = data.saltText;
+                //判断是否为IE浏览器
+                if (!!window.ActiveXObject || "ActiveXObject" in window) {
+                    window.clipboardData.setData("Text", saltText);
+                    layer.msg("复制到粘贴板成功", {icon: 1, time: 1000});
+                } else {
+                    var input = document.createElement('input');
+                    input.setAttribute('readonly', 'readonly'); // 防止手机上弹出软键盘
+                    input.setAttribute('value', saltText);
+                    document.body.appendChild(input);
+                    input.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(input);
+                    layer.msg("复制到粘贴板成功", {icon: 1, time: 1000});
+                }
+
+
+            }
+        });
+
+    });
+
+</script>

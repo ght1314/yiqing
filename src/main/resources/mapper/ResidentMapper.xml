@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.demo.mapper.ResidentMapper">
+
+    <select id="residentsByParams" parameterType="string" resultType="ResidentDto">
+        select r.res_id,res_name,res_sex,res_phone,res_intotime,res_status,res_remark,add_Name,add_house,add_unit
+        from tb_res_add s left join tb_resident r on s.res_id = r.res_id left join tb_address a
+        on s.add_id = a.add_id
+        <where>
+            r.deleted = 0 and a.deleted = 0
+            <if test="keyword != null and keyword != '' ">
+                and CONCAT(res_name,r.res_id,res_phone) like CONCAT('%',#{keyword},'%')
+            </if>
+            <if test="house != null and house != '' ">
+                and a.add_house = #{house}
+            </if>
+            <if test="unit != null and unit != '' ">
+                and a.add_unit = #{unit}
+            </if>
+        </where>
+
+    </select>
+
+
+    <insert id="addResident" parameterType="com.demo.dto.ResidentDto">
+        begin;
+        insert into tb_address(add_sort, add_name, add_house, add_unit, add_count)
+        values ("370411001", #{addName}, #{addHouse}, #{addUnit}, add_count + 1);
+        insert into tb_resident(res_id, res_name, res_sex, res_phone, res_intotime, res_remark, res_photo)
+        values (#{resId}, #{resName}, #{resSex}, #{resPhone}, #{resIntotime}, #{resRemark}, null);
+        insert into tb_res_add(add_id, res_id)
+        values (LAST_INSERT_ID(), #{resId});
+        commit;
+    </insert>
+
+    <insert id="addResidentOld" parameterType="ResidentDto">
+        begin;zs_phone, res_intotime, res_remark, res_photo)
+        values (#{resId}, #{resName}, #{resSex}, #{resPhone}, #{resIntotime}, #{resRemark}, null);
+        insert into tb_res_add(add_id, res_id)
+        values (#{addId}, #{resId});
+        commit;
+    </insert>
+    <!--    批量添加数据-->
+    <insert id="insertBatchResident">
+        insert into tb_resident(res_id, res_name, res_sex, res_phone, res_intotime,res_status, res_remark, res_photo)
+        values
+        <foreach collection="residentDtos" item="resident" index="index" separator=",">
+            (#{resident.resId}, #{resident.resName}, #{resident.resSex}, #{resident.resPhone}, #{resident.resIntotime},
+            #{resident.resStatus},#{resident.resRemark}, null)
+        </foreach>
+    </insert>
+
+    <update id="updateStatusByID" parameterType="integer">
+        update tb_resident
+        set res_status = #{Status}
+        where res_id = #{resId}
+    </update>
+
+    <select id="queryResByAddId" parameterType="integer" resultType="ResidentDto">
+        select r.res_id,
+               res_name,
+               res_sex,
+               res_phone,
+               res_intotime,
+               s.add_id,
+               add_house,
+               add_unit,
+               add_count
+        from tb_res_add s
+                 left join tb_resident r on s.res_id = r.res_id
+                 left join tb_address a
+                           on s.add_id = a.add_id
+        where r.deleted = 0
+          and a.deleted = 0
+          and a.add_id = #{addId}
+    </select>
+
+    <select id="queryAddIdByResId" parameterType="integer" resultType="integer">
+        select a.add_id
+        from tb_res_add s
+                 left join tb_resident r on s.res_id = r.res_id
+                 left join tb_address a
+                           on s.add_id = a.add_id
+        where r.deleted = 0
+          and a.deleted = 0
+          and r.res_id = #{resId}
+    </select>
+
+
+    <select id="queryResidentById" resultType="com.demo.dto.ResidentDto" parameterType="int">
+        select r.res_id,
+               res_name,
+               res_sex,
+               res_phone,
+               res_intotime,
+               res_remark,
+               s.add_id,
+               add_house,
+               add_unit,
+               add_count
+        from tb_res_add s
+                 left join tb_resident r on s.res_id = r.res_id
+                 left join tb_address a
+                           on s.add_id = a.add_id
+        where r.deleted = 0
+          and a.deleted = 0
+          and r.res_id = #{resId}
+    </select>
+
+    <update id="updateResident" parameterType="ResidentDto">
+        update tb_res_add s left join tb_resident r
+        on s.res_id = r.res_id left join tb_address a
+            on s.add_id = a.add_id
+            set
+                r.res_name = #{resName},
+                r.res_sex = #{resSex},
+                r.res_phone = #{resPhone},
+                r.res_intotime = #{resIntotime},
+                r.res_remark = #{resRemark},
+                r.res_status = #{resStatus},
+                a.add_name =#{addName},
+                a.add_house = #{addHouse},
+                a.add_unit = #{addUnit}
+        where r.res_id =#{resId}
+    </update>
+
+    <update id="deleteResidents" parameterType="integer">
+        update tb_res_add s left join tb_resident r
+        on s.res_id = r.res_id left join tb_address a
+            on s.add_id = a.add_id set
+            r.deleted = 1,
+            a.deleted = 1,
+            a.add_count = (a.add_count - 1)
+        where r.res_id = #{id}
+    </update>
+
+    <!--<delete id="deleteResidents">
+        delete  tb_resident,tb_address from tb_resident  left join tb_address  on
+          tb_resident.add_id = tb_address.add_id where tb_resident.res_id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+    </delete>-->
+
+    <select id="queryResPeril" resultType="com.demo.dto.ResidentDto">
+        select r.res_id,
+               res_name,
+               res_sex,
+               res_phone,
+               res_intotime,
+               res_status,
+               res_remark,
+               add_Name,
+               add_house,
+               add_unit
+        from tb_res_add s
+                 left join tb_resident r on s.res_id = r.res_id
+                 left join tb_address a
+                           on s.add_id = a.add_id
+        where r.deleted = 0
+          and a.deleted = 0
+          and res_status = 2
+    </select>
+
+    <select id="queryResCountByDate" parameterType="string" resultType="com.demo.dto.RecordDto">
+        select *
+        from tb_resident
+        where deleted = 0
+          and res_intotime between #{beginTime} and #{endTime}
+    </select>
+</mapper>

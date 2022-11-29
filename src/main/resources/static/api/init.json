@@ -1,0 +1,110 @@
+[
+  {
+    "title": "社区人员管理",
+    "icon": "fa fa-address-book",
+    "href": "",
+    "target": "_self",
+    "child": [
+      {
+        "title": "业主管理",
+        "href": "",
+        "icon": "fa fa-home",
+        "target": "_self",
+        "child": [
+          {
+            "title": "业主信息",
+            "href": "/User/resident",
+            "icon": "fa fa-tachometer",
+            "target": "_self"
+          },
+          {
+            "title": "高危业主",
+            "href": "/User/perilPage",
+            "icon": "fa fa-tachometer",
+            "target": "_self"
+          },
+          {
+            "title": "业主统计",
+            "href": "/User/resCount",
+            "icon": "fa fa-tachometer",
+            "target": "_self"
+          }
+        ]
+      },
+      {
+        "title": "进出管理",
+        "href": "",
+        "icon": "fa fa-window-maximize",
+        "target": "_self",
+        "child": [
+          {
+            "title": "业主进出登记",
+            "href": "/User/resRecord",
+            "icon": "fa fa-tachometer",
+            "target": "_self"
+          },
+          {
+            "title": "访客进出登记",
+            "href": "/User/visRecord",
+            "icon": "fa fa-tachometer",
+            "target": "_self"
+          },
+          {
+            "title": "进出信息管理",
+            "href": "/User/records",
+            "icon": "fa fa-tachometer",
+            "target": "_self"
+          }
+        ]
+      },
+      {
+        "title": "访客管理",
+        "href": "",
+        "icon": "fa fa-gears",
+        "target": "_self",
+        "child": [
+          {
+            "title": "访客信息",
+            "href": "/User/vistors",
+            "icon": "fa fa-tachometer",
+            "target": "_self"
+          }
+        ]
+      },
+      {
+        "title": "地址管理",
+        "href": "",
+        "icon": "fa fa-file-text",
+        "target": "_self",
+        "child": [
+          {
+            "title": "地址表",
+            "href": "/User/address",
+            "icon": "fa fa-tachometer",
+            "target": "_self"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "系统用户管理",
+    "icon": "fa fa-lemon-o",
+    "href": "",
+    "target": "_self",
+    "child": [
+      {
+        "title": "用户管理",
+        "href": "/User/users",
+        "icon": "fa fa-snowflake-o",
+        "target": "_self"
+      },
+      {
+        "title": "注册码",
+        "href": "/User/userSalt",
+        "icon": "fa fa-hourglass-end",
+        "target": "_self"
+      }
+    ]
+  }
+]

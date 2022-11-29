@@ -1,0 +1,148 @@
+
+<div class="layuimini-main">
+
+    <div class="layui-form layuimini-form" lay-filter="saveBtn">
+
+        <div class="layui-form-item">
+            <label class="layui-form-label required">进出时间</label>
+            <div class="layui-input-block">
+                <input type="text" name="recTime" id="recTime" lay-verify="required"  placeholder="进出时间:  yyyy-MM-dd HH:mm:ss" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label required">进出类型</label>
+            <div class="layui-input-block">
+                <input type="radio" name="recType" value="进" title="进" checked>
+                <input type="radio" name="recType" value="出" title="出">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label required">访客姓名</label>
+            <div class="layui-input-block">
+                <input type="text" name="visName"  lay-verify="required" lay-reqtext="姓名不能为空" placeholder="请输入姓名" value="" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label required">联系方式</label>
+            <div class="layui-input-block">
+                <input type="text" name="visPhone"  lay-verify="required|phone" lay-reqtext="手机号不能为空" placeholder="请输入联系方式" value="" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item" style="padding-left: 40px">
+            <div class="layui-inline">
+                <label class="layui-form-label required">访问楼号</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="addHouse"  lay-verify="required" lay-reqtext="受访地址不能为空" placeholder="请输入受访地址" value="" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label required">访问单元号</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="addUnit"  lay-verify="required" lay-reqtext="受访地址不能为空" placeholder="请输入受访地址" value="" class="layui-input">
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label required">出入地点</label>
+            <div class="layui-input-block">
+                <input type="text" name="recOrderadd"  lay-verify="required" lay-reqtext="来源地不能为空" placeholder="请输入从什么地方来" value="" class="layui-input">
+                <tip>从何处来</tip>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label required">访客体温</label>
+            <div class="layui-input-block">
+                <input type="text" name="recTempera" placeholder="请输入进出人体温,精确到小数点后一位 如：36.5" value="36.5" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">备注信息</label>
+            <div class="layui-input-block">
+                <input type="text" name="recRemark" placeholder="备注信息" value="" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <!--            <label class="layui-form-label required ">登记类型</label>-->
+            <div class="layui-input-block">
+                <input type="hidden" name="recPerType"   value="1" class="layui-input">
+            </div>
+        </div>
+
+
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveBtn">确认添加</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    layui.use(['form', 'table','laydate'], function () {
+        var form = layui.form,
+            layer = layui.layer,
+            laydate = layui.laydate,
+            $ = layui.$;
+
+        /**
+         * 初始化表单，要加上，不然刷新部分组件可能会不加载
+         */
+        form.render();
+
+
+        // 当前弹出层，防止ID被覆盖
+        var parentIndex = layer.index;
+        laydate.render({
+            elem:'#recTime',
+            type:'datetime',
+            format:'yyyy-MM-dd HH:mm:ss',
+            value:new Date(),
+            min: '2000-01-01 00:00:00',
+            }
+        );
+
+        //监听提交
+        form.on('submit(saveBtn)', function (data) {
+            var datas = data.field;
+
+            if (datas.recType == '进'){
+                datas.recType = 1;
+            }else{
+                datas.recType = 0;
+            }
+            var loadIndex = layer.load(2);
+            $.ajax({
+                url: '/records//addRecord',
+                type: 'POST',
+                data: datas,
+                dataType: "json",
+                success: function (res) {
+                    layer.close(loadIndex);
+                    if (res.code == '200') {
+                        layer.msg("添加成功！", {
+                            icon: 6,
+                            time: 300},function () {
+                            parent.window.location.reload();//刷新页面
+                            var iframeIndex = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(iframeIndex)
+                        });
+                    } else {
+                        layer.msg("添加用户失败！", {icon: 2});
+                    }
+                }, error: function () {
+                    layer.close(loadIndex);
+                    layer.msg('网页出错了,即将跳转异常页', {icon: 2,time:1500});
+                    window.location.href = '/User/404'
+                }
+            });
+            return false;
+        });
+
+    });
+</script>
+</html>

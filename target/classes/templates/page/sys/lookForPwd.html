@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>找回密码</title>
+    <link rel="stylesheet" href="../lib/layui-v2.5.5/css/layui.css" th:href="@{../lib/layui-v2.5.5/css/layui.css}" media="all">
+    <link rel="stylesheet" href="../css/public.css" th:href="@{../css/public.css}" media="all">
+    <link rel="stylesheet" href="../css/layuimini.css?v=2.0.1" th:href="@{../css/layuimini.css?v=2.0.1}" media="all">
+</head>
+<div class="layui-container layui-mystyle-form">
+    <div class="layui-form layuimini-form"  lay-filter="retrievePwd">
+
+        <div class="layui-form-item layui-mystyle-item">
+            <label class="layui-form-label required layui-icon layui-icon-username">用户名</label>
+            <div class="layui-input-block">
+                <input type="text" name="account" id="account"  lay-verify="required"  placeholder="请输入用户账号" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item layui-mystyle-item">
+            <label class="layui-form-label required  layui-icon layui-icon-cellphone">手机号</label>
+            <div class="layui-input-block">
+                <input type="text" name="userPhone" id="userPhone" lay-verify="required|phone"  placeholder="请输入用户的手机号" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+
+        <div class="layui-form-item " style="padding-left: 40px;">
+
+            <div class="layui-inline">
+                <label class="layui-form-label required layui-icon layui-icon-vercode">验证码</label>
+                <div class="layui-input-block">
+                    <input type="text" name="verCode" id="verCode" lay-verify="required"  autocomplete="off" class="layui-input layui-mystyle-item">
+                </div>
+            </div>
+            <div class="layui-inline">
+                <div class="layui-input-inline">
+                    <button type="button" class="layui-btn layui-btn-sm layui-btn-primary layui-btn-fluid" id="LAY-user-getsmscode"    style="width: 100px" >获取验证码</button>
+                    <span id='tt'></span>
+                </div>
+            </div>
+
+        </div>
+        <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn layui-btn-normal" lay-submit lay-filter="retrievePwd">找回密码</button>
+                </div>
+        </div>
+
+        <div class="layui-form-item" style="margin-top: 20%;margin-left: 10%;">
+            <div class="layui-input-block">
+                <a href="/User/login" style="font-size: 12px;">返回登录页</a>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+<script src="../lib/layui-v2.5.5/layui.js" th:src="@{../lib/layui-v2.5.5/layui.js}" charset="utf-8"></script>
+<script src="../js/lay-config.js?v=2.0.0" th:src="@{../js/lay-config.js}" charset="utf-8"></script>
+<script>
+    layui.use(['form', 'table','jquery'], function () {
+        var form = layui.form,
+            layer = layui.layer,
+            $ = layui.jquery;
+
+        /**
+         * 初始化表单，要加上，不然刷新部分组件可能会不加载
+         */
+        form.render();
+
+
+        // 当前弹出层，防止ID被覆盖
+        var parentIndex = layer.index;
+
+            $("#LAY-user-getsmscode").click(function(){
+                var account = document.getElementById("account").value;
+                var userPhone = document.getElementById("userPhone").value;
+                if (account ==  '' || userPhone == '')
+                {
+                    layer.msg("用户名或手机号不能为空！！！" ,{icon:5,time:1000});
+                }else{
+                    $.ajax({
+                        url : '/User/sendSms',
+                        type : 'POST',
+                        data : {
+                            'account' : account,
+                            'userPhone' : userPhone
+                        },
+                        dataType: "json",
+                        success : function (res) {
+                            if (res.code == '200'){
+                                layer.msg(res.msg, {icon: 6, time: 1000});
+                                //60s允许点击一次按钮
+                                var t = document.getElementById("tt");
+                                t.innerText = "300";
+                                var sa = setInterval(function(){--t.innerHTML;
+                                    if(t.innerHTML==0) {
+                                        t.style.display = "none";
+                                        clearInterval(sa);
+                                        document.getElementById("LAY-user-getsmscode").className = 'layui-btn  layui-btn-sm layui-btn-primary';
+                                    }
+                                },1000);
+                                var flag = document.getElementById("tt").innerHTML;
+                                if (flag > 0){
+                                    document.getElementById("LAY-user-getsmscode").className = 'layui-btn layui-btn-sm layui-btn-disabled';//设置不可点击
+                                }
+
+                            }else {
+                                layer.msg(res.msg, {icon: 2, time: 1000});
+                            }
+                        }
+                    });
+                }
+                return false;
+            });
+
+
+        //监听提交
+        form.on('submit(retrievePwd)', function (data) {
+            var datas = data.field;
+
+            var loadIndex = layer.load(2);
+            $.ajax({
+                url: '/User/lookForPwdSubmit',
+                type: 'post',
+                data: datas,
+                dataType: "json",
+                success: function (res) {
+                    layer.close(loadIndex);
+                    if (res.code == '200') {
+                        layer.open({
+                            title: '修改信息',
+                            type: 1,
+                            shade: 0.2,
+                            maxmin:true,
+                            shadeClose: true,
+                            area: ['40%', '60%'],
+                            offset:  ['20%', '30%'],
+                            content: $("#updatePwd")
+                        });
+                        setFormValue(res.msg);
+                    } else {
+                        layer.msg(res.msg, {icon: 2, time: 1000});
+                    }
+                }, error: function () {
+                    layer.close(loadIndex);
+                    layer.msg('网页出错了,即将跳转异常页', {icon: 2,time:1500});
+                    window.location.href = '/User/404'
+                }
+            });
+            return false;
+        });
+
+        function setFormValue(datas) {
+            form.val("updateBtn",{
+                "account":datas
+            });
+        }
+
+        /**
+         * 重置密码
+         */
+        form.on('submit(updateBtn)',function (data) {
+            var datas = data.field;
+            if (datas.newPwd == datas.againPwd){
+                $.ajax({
+                    url: '/User/retrievePwdSubmit',
+                    type: 'post',
+                    data: datas,
+                    dataType: "json",
+                    success: function (res) {
+                        if (res.code == '200') {
+                            layer.msg(res.msg, {
+                                icon: 6,
+                                time: 1000},function () {
+                                var iframeIndex = parent.layer.getFrameIndex(window.name);
+                                parent.layer.close(iframeIndex)
+                                parent.window.location.href ="/User/login";//返回登录页
+                            });
+                        } else {
+                            layer.msg("找回密码失败！", {icon: 2});
+                        }
+                    }, error: function () {
+                        layer.msg('网页出错了,即将跳转异常页', {icon: 2,time:1500});
+                        window.location.href = '/User/404'
+                    }
+                });
+            }else {
+                layer.msg("两次输入的密码不一致，请重新输入..",{icon:5,time:1000})
+            }
+
+            return false;
+        });
+
+    });
+</script>
+<div class="layui-form layuimini-form" id="updatePwd" style="display: none" lay-filter="updateBtn">
+    <div class="layui-form-item" >
+        <div class="layui-input-block">
+            <input type="hidden" class="account" name="account" >
+        </div>
+    </div>
+    <div class="layui-form-item " >
+        <label class="layui-form-label required layui-icon layui-icon-face-password">新的密码</label>
+        <div class="layui-input-inline">
+            <input type="password" name="newPwd" id="newPwd" lay-verify="required" lay-reqtext="新的密码不能为空" placeholder="请输入新的密码" value="" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required layui-icon layui-icon-face-password">确认密码</label>
+        <div class="layui-input-inline">
+            <input type="password" name="againPwd" id="againPwd" lay-verify="required" lay-reqtext="确认密码不能为空" placeholder="请输入确认密码" value="" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="updateBtn">重置密码</button>
+        </div>
+    </div>
+</div>
+</html>
+

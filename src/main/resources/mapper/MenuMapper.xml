@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.demo.mapper.MenuMapper">
+    <sql id="menuInfo">
+        menu_id,title,parent_id,href,icon,target,deleted
+    </sql>
+
+    <select id="listByUserId" parameterType="int" resultType="com.demo.dto.MenuDTO">
+        SELECT
+        M.*
+        FROM
+        tb_menu M,
+        tb_menu_role MR,
+        tb_user_role UR
+        WHERE
+        MR.role_id = UR.role_id
+        AND
+        M.menu_id = MR.menu_id
+        AND
+        UR.user_id = #{userId}
+    </select>
+</mapper>

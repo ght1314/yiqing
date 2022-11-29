@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache name="ehcache"
+         updateCheck="false"
+         monitoring="autodetect"
+         dynamicConfig="true">
+
+    　　<!-- 设置默认临时文件路径 -->
+    <diskStore path="java.io.tmpdir"/>
+    <defaultCache
+            eternal="false"
+            maxElementsInMemory="1000"
+            overflowToDisk="false"
+            diskPersistent="false"
+            timeToIdleSeconds="0"
+            timeToLiveSeconds="600"
+            memoryStoreEvictionPolicy="LRU">
+    </defaultCache>
+
+    <!--    登录记录缓存 -->
+    <cache name="authorizationCache"
+           maxEntriesLocalHeap="1000"
+           maxEntriesLocalDisk="1000"
+           eternal="false"
+           diskSpoolBufferSizeMB="20"
+           timeToIdleSeconds="1800"
+           timeToLiveSeconds="28800"
+           memoryStoreEvictionPolicy="LFU"
+           transactionalMode="off"
+           overflowToDisk="false"
+           statistics="true">
+    </cache>
+    <!--    登录记录缓存 密码错误超过三次 锁定10min-->
+    <cache name="userLockEhcache"
+           maxEntriesLocalHeap="1000"
+           maxEntriesLocalDisk="1000"
+           eternal="false"
+           diskSpoolBufferSizeMB="20"
+           timeToIdleSeconds="600"
+           timeToLiveSeconds="28800"
+           memoryStoreEvictionPolicy="LFU"
+           transactionalMode="off"
+           overflowToDisk="false"
+           statistics="true">
+    </cache>
+
+</ehcache>

@@ -1,0 +1,86 @@
+<style>
+    .layui-form-item .layui-input-company {width: auto;padding-right: 10px;line-height: 38px;}
+</style>
+<div class="layuimini-container layuimini-page-anim ">
+    <div class="layuimini-main">
+
+        <div class="layui-form layuimini-form " lay-filter="saveBtn">
+            <div class="layui-form-item">
+                <label class="layui-form-label required">管理账号</label>
+                <div class="layui-input-block">
+                    <input type="text" readonly="readonly" name="account" lay-verify="required" lay-reqtext="管理账号不能为空"  value="" class="layui-input">
+                    <tip>管理账号不可更改</tip>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">昵称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="userName" lay-verify="required" placeholder="请输入昵称"  value="" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label required">手机号</label>
+                <div class="layui-input-block">
+                    <input type="number" name="userPhone" lay-verify="required|phone|number" lay-reqtext="手机不能为空" placeholder="请输入手机"  value="" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveBtn">确认保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    layui.use(['layer','form','jquery', 'miniPage','cookie'], function () {
+        var $ = layui.jquery,
+            form = layui.form,
+            layer = layui.layer,
+            cookie = layui.cookie,
+            miniPage = layui.miniPage;
+
+        /**
+         * 初始化表单，要加上，不然刷新部分组件可能会不加载
+         */
+        form.render();
+
+
+        let account = $.getCookie("account");
+        let userName = $.getCookie("userName");
+        let userPhone = $.getCookie("userPhone");
+        form.val("saveBtn",{
+            "account":account,
+            "userName":userName,
+            "userPhone":userPhone
+        });
+
+        //监听提交
+        form.on('submit(saveBtn)', function (data) {
+            $.ajax({
+                    url:'/User/infoSubmit',
+                    method:'POST',
+                    data: data.field,
+                    success:function (res) {
+                        if (res.code == 200){
+                            layer.msg("保存用户信息成功",{icon:1,time:1000},function () {
+                                miniPage.hashHome();
+                                parent.location.reload();
+                            });
+                        }else{
+                            layer.msg(res.msg,{icon:2,time:1000});
+                        }
+                    },
+                    error:function () {
+                        window.location.href="/User/404";
+                    }
+                });
+
+
+
+            return false;
+        });
+
+    });
+</script>

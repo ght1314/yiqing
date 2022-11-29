@@ -1,0 +1,456 @@
+<div class="layuimini-container layuimini-page-anim">
+    <div class="layuimini-main">
+
+        <fieldset class="table-search-fieldset">
+            <legend>搜索信息</legend>
+            <div style="margin: 10px 10px 10px 10px">
+
+                <form class="layui-form layui-form-pane" action="">
+                    <div class="layui-form-item">
+
+                        <div class="layui-inline">
+                            <label class="layui-form-label">关键字搜索</label>
+                            <div class="layui-input-inline">
+                                <input type="text" id="keyword" name="keyword" autocomplete="off" class="layui-input"
+                                       placeholder="请输入搜索关键字">
+                            </div>
+
+                            <div class="layui-inline">
+                                <label class="layui-form-label">楼号</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="addHouse" autocomplete="off" placeholder="搜索的楼号"
+                                           class="layui-input">
+                                </div>
+                            </div>
+
+                            <div class="layui-inline">
+                                <label class="layui-form-label">单元号</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="addUnit" placeholder="搜索的单元号" autocomplete="off"
+                                           class="layui-input">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <button type="submit" class="layui-btn layui-btn-primary" lay-submit
+                                    lay-filter="data-search-btn"><i class="layui-icon"></i> 搜 索
+                            </button>
+                        </div>
+
+
+                    </div>
+
+                </form>
+
+            </div>
+        </fieldset>
+
+        <script type="text/html" id="toolbarDemo">
+            <div class="layui-btn-container">
+                <button type="submit" class="layui-btn layui-btn-sm" lay-submit lay-filter="data-all"><i
+                        class="layui-icon layui-icon-home"></i>全部业主
+                </button>
+                <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add"> 添加</button>
+                <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="delete"> 删除</button>
+                <button class="layui-btn layui-btn-sm " id="upload">上传文件
+                </button>
+            </div>
+        </script>
+
+        <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
+
+        <script type="text/html" id="currentTableBar">
+            <a class="layui-btn layui-btn-normal layui-btn-xs data-count-edit" lay-event="edit">编辑</a>
+            <a class="layui-btn layui-btn-xs layui-btn-danger data-count-delete" lay-event="delete">删除</a>
+        </script>
+
+    </div>
+</div>
+<script>
+    layui.use(['form', 'table', 'miniPage', 'element', 'laydate', 'upload'], function () {
+        var $ = layui.jquery,
+            form = layui.form,
+            table = layui.table,
+            laydate = layui.laydate,
+            miniPage = layui.miniPage,
+            upload = layui.upload;
+        table.render({
+            //渲染的表格对应ID
+            elem: '#currentTableId',
+            url: '/residents/residentsByParams',
+            toolbar: '#toolbarDemo',
+            defaultToolbar: ['filter', 'exports', 'print', {
+                title: '提示',
+                layEvent: 'LAYTABLE_TIPS',
+                icon: 'layui-icon-tips'
+            }],
+            //表头
+            cols: [
+                [
+                    {type: "checkbox", width: 60},
+                    {field: 'resId', width: 80, title: '编号', sort: true},
+                    {field: 'resName', width: 100, title: '用户名', sort: true},
+                    {
+                        field: 'resSex', width: 85, title: '性别', sort: true,
+                        templet: function (res) { //0为男性，1为女性
+                            if (res.resSex == '0') {
+                                return '<span>男</span>';
+                            } else {
+                                return '<span>女</span>';
+                            }
+                        }
+                    },
+                    {field: 'resPhone', width: 140, title: '手机号', sort: true},
+                    {field: 'resIntotime', width: 120, title: '入住日期', sort: true},
+                    {
+                        field: 'resStatus', width: 90, title: '状态',
+                        templet: function (res) {//0正常 1 低风险 2高风险
+                            if (res.resStatus == '0') {
+                                return '<span class="layui-btn  layui-btn-xs">正常</span>'
+                            } else if (res.resStatus == '1') {
+                                return '<span class="layui-btn layui-btn-warm layui-btn-xs">低风险</span>'
+                            } else if (res.resStatus == '2') {
+                                return '<span class="layui-btn  layui-btn-danger layui-btn-xs" >高风险</span>'
+                            } else {
+                                return '<span class="layui-btn  layui-btn-primary layui-btn-xs" >未知</span>'
+                            }
+                        }
+                    },
+                    {field: 'addHouse', width: 80, title: '楼号', sort: true},
+                    {field: 'addUnit', width: 100, title: '单元号', sort: true},
+                    {field: 'resRemark', width: 170, title: '备注'},
+                    {title: '操作', minWidth: 130, toolbar: '#currentTableBar', align: "center"}
+                ]
+            ],
+            limits: [10, 15, 20, 25, 50, 100],//每页条数的选择项
+            curr: 2,
+            limit: 10,//每页显示的条数
+            page: true,//开启分页
+            skin: 'line',//表格的风格，外观
+            parseData: function (res) {
+                return {
+                    "code": res.code,
+                    "msg": res.msg,
+                    "count": res.count,
+                    "data": res.data.records,
+                };
+            },
+
+        });
+
+
+        // 监听搜索操作
+        form.on('submit(data-search-btn)', function (data) {
+            var result = JSON.stringify(data.field);
+            table.reload('currentTableId', {
+                page: {
+                    curr: 1
+                }
+                , where: {
+                    params: result
+                }
+            }, 'data');
+            return false;
+        });
+
+        // 监听搜索操作
+        form.on('submit(data-all)', function (data) {
+            var result = JSON.stringify(data.field);
+            table.reload('currentTableId', {
+                page: {
+                    curr: 1
+                }
+                , where: {
+                    params: result
+                }
+            }, 'data');
+            return false;
+        });
+        //文件上传操作
+        upload.render({
+            elem: '#upload' //绑定元素
+            , url: '/api/excel/uploadRes' //上传接口
+            , accept: 'file'
+            , size: 10240 // 最大上传限制，最大为10M
+            , done: function (res) {
+                //上传完毕回调
+                if (res.code == 200) {
+                    layer.msg(res.msg, {icon: 6, time: 1000});
+                    parent.window.location.reload();
+                } else {
+                    layer.msg(res.msg, {icon: 5, time: 1000});
+                }
+            }, error: function () {
+                //请求异常回调
+            }
+        });
+
+        /**
+         * toolbar事件监听
+         */
+        table.on('toolbar(currentTableFilter)', function (obj) {
+            if (obj.event === 'add') {   // 监听添加操作
+                var openWH = miniPage.getOpenWidthHeight();
+
+                var index = layer.open({
+                    title: '添加用户',
+                    type: 2,
+                    shade: 0.2,
+                    maxmin: true,
+                    shadeClose: true,
+                    area: ['50%', '90%'],
+                    offset: 'auto',
+                    content: 'addResident',
+                });
+                $(window).on("resize", function () {
+                    layer.full(index);
+                });
+            } else if (obj.event === 'delete') {  // 监听删除操作,获取表格中选中的行数据
+                var checkStatus = table.checkStatus('currentTableId');
+                // 获取被选中记录对应的数据
+                var saleChanceData = checkStatus.data;
+                if (saleChanceData.length === 0) {
+                    layer.msg('请选择要删除的数据', {icon: 2});
+                    return;
+                }
+
+                layer.confirm('确定删除选中数据？', {icon: 3, title: "业主信息管理"}, function (index) {
+                    //关闭确认框
+                    layer.close(index);
+                    //传递的参数是数组，获取传递的ID
+                    var ids = "ids=";
+                    //循环获取选中的行的数据
+                    for (var i = 0; i < saleChanceData.length; i++) {
+                        if (i < saleChanceData.length - 1) {
+                            ids = ids + saleChanceData[i].resId + "&ids="
+                        } else {
+                            ids = ids + saleChanceData[i].resId
+                        }
+                    }
+
+                    //向服务器发送删除指令  多个删除
+                    $.ajax({
+                        url: '/residents/delResident',
+                        type: 'POST',
+                        data: ids,
+                        success: function (suc) {
+                            if (suc.code == 200) {
+                                layer.msg("删除业主信息成功！", {icon: 6, time: 1000});
+                                parent.window.location.reload();
+                            } else {
+                                layer.msg("删除业主信息失败！！！", {icon: 5, time: 1000});
+                            }
+                        }
+                    });
+                });
+
+
+            }
+        });
+
+
+        //监听表格复选框选择
+        table.on('checkbox(currentTableFilter)', function (obj) {
+            // console.log(obj)
+        });
+
+
+        table.on('tool(currentTableFilter)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'edit') {
+                //使用弹出层
+                layer.open({
+                    title: '修改信息',
+                    type: 1,
+                    shade: 0.0,
+                    maxmin: true,
+                    shadeClose: true,
+                    area: ['50%', '80%'],
+                    offset: ['100px', '20%'],
+                    content: $("#updateRes")
+                });
+                setFormValue(obj, data);
+                return false;
+            } else if (obj.event === 'delete') {
+                console.log(obj.data.resId)
+                layer.confirm('确定删除选中数据？', {icon: 3, title: "业主信息管理"}, function (index) {
+                    //关闭确认框
+                    layer.close(index);
+                    //向服务器发送删除指令  单个删除
+                    $.ajax({
+                        url: '/residents/delResident',
+                        type: 'POST',
+                        data: {
+                            'ids': obj.data.resId
+                        },
+                        success: function (suc) {
+                            if (suc.code == 200) {
+                                layer.msg("删除业主信息成功！", {icon: 6, time: 1000});
+                                /**parent.window.location.reload();**/
+                            } else {
+                                layer.msg("删除业主信息失败！！！", {icon: 5, time: 1000});
+                            }
+                        }
+                    })
+                });
+
+            }
+        });
+        //日期选择
+        laydate.render({
+                elem: '#resIntotime',
+                type: 'date',
+                format: 'yyyy-MM-dd',
+                value: new Date(),
+                min: '2000-01-01',
+            }
+        );
+
+
+        //更改用户信息
+        function setFormValue(obj, data) {
+            var boy = document.getElementById("boy");
+            var girl = document.getElementById("girl");
+            if (data.resSex == 0) {
+                //男
+                boy.setAttribute("checked", true);
+            } else {
+                //女
+                girl.setAttribute("checked", true);
+            }
+            form.val("updateSubmit", {
+                "resId": data.resId,
+                "resName": data.resName,
+                "resPhone": data.resPhone,
+                "resIntotime": data.resIntotime,
+                "resRemark": data.resRemark,
+                "resStatus": data.resStatus,
+                "addName": data.addName,
+                "addHouse": data.addHouse,
+                "addUnit": data.addUnit,
+            });
+            boy.removeAttribute("checked");
+            girl.removeAttribute("checked");
+        }
+
+        form.on('submit(updateSubmit)', function (data) {
+            var datas = data.field;
+
+            if (datas.resSex == '男') {
+                datas.resSex = 0;
+            } else {
+                datas.resSex = 1;
+            }
+
+            $.ajax({
+                url: '/residents/updateResSubmit',
+                type: 'post',
+                data: datas,
+                dataType: "json",
+                success: function (res) {
+                    if (res.code == '200') {
+                        layer.msg("修改成功！", {
+                            icon: 6,
+                            time: 300
+                        }, function () {
+                            parent.window.location.reload();//刷新页面
+                            var iframeIndex = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(iframeIndex)
+                        });
+                    } else {
+                        layer.msg("修改失败！", {icon: 2});
+                    }
+                }, error: function (data) {
+                    layer.close(loadIndex);
+                    layer.msg(data.responseJSON.msg, {icon: 2});
+                }
+            });
+            return false;
+        });
+
+
+    });
+</script>
+<div class="layui-form layuimini-form" id="updateRes" style="display: none" lay-filter="updateSubmit">
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <input type="hidden" name="resId" lay-verify="required" lay-reqtext="业主名不能为空" placeholder="请输入业主名" value=""
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required">业主名</label>
+        <div class="layui-input-block">
+            <input type="text" name="resName" lay-verify="required" lay-reqtext="业主名不能为空" placeholder="请输入业主名" value=""
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required">性别</label>
+        <div class="layui-input-block">
+            <input type="radio" name="resSex" id="boy" value="男" title="男">
+            <input type="radio" name="ressex" id="girl" value="女" title="女">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required">手机</label>
+        <div class="layui-input-block">
+            <input type="number" name="resPhone" lay-verify="required" lay-reqtext="手机号不能为空" placeholder="请输入手机号"
+                   value="" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">入住时间</label>
+        <div class="layui-input-inline">
+            <input type="text" name="resIntotime" id="resIntotime" lay-verify="date|required"
+                   placeholder="入住时间:yyyy-MM-dd" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">状态</label>
+        <div class="layui-input-inline">
+            <select name="resStatus" id="resStatus" lay-verify="required">
+                <option value="">请选择一个状态</option>
+                <option value="0">正常</option>
+                <option value="1">低风险</option>
+                <option value="2">高风险</option>
+                <option value="">未知</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">备注信息</label>
+        <div class="layui-input-block">
+            <input type="text" name="resRemark" placeholder="备注信息" value="" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">社区名称</label>
+        <div class="layui-input-block">
+            <input type="text" name="addName" lay-verify="required" placeholder="请输入社区名称" value="" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required">楼号</label>
+        <div class="layui-input-block">
+            <input type="number" name="addHouse" lay-verify="required" placeholder="请输入楼号" value="" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required">单元号</label>
+        <div class="layui-input-block">
+            <input type="number" name="addUnit" lay-verify="required" placeholder="请输入单元号" value="" class="layui-input">
+        </div>
+    </div>
+
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="updateSubmit">确认修改</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,97 @@
+
+<div class="layuimini-container layuimini-page-anim">
+    <div class="layuimini-main">
+
+        <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
+
+    </div>
+</div>
+<script>
+    layui.use(['form', 'table','miniPage','element'], function () {
+        var $ = layui.jquery,
+            form = layui.form,
+            table = layui.table,
+            miniPage = layui.miniPage;
+
+        table.render({
+            //渲染的表格对应ID
+            elem: '#currentTableId',
+            url: '/residents/residentPeril',
+            toolbar: '#toolbarDemo',
+            defaultToolbar: ['filter', 'exports', 'print', {
+                title: '提示',
+                layEvent: 'LAYTABLE_TIPS',
+                icon: 'layui-icon-tips'
+            }],
+            //表头
+            cols: [
+                [
+                    {field: 'resId', width: 80, title: '编号',sort: true},
+                    {field: 'resName', width: 100, title: '用户名',sort: true},
+                    {field: 'resSex', width: 85, title: '性别',sort: true,
+                        templet: function (res) { //0为男性，1为女性
+                            if (res.resSex == '0'){
+                                return '<span>男</span>';
+                            }else
+                            {
+                                return '<span>女</span>';
+                            }
+                        }
+                    },
+                    {field: 'resPhone', width: 140, title: '手机号',sort: true},
+                    {field: 'resIntotime', width: 120, title: '入住日期',sort: true},
+                    {field: 'resStatus', width: 90, title: '状态',
+                        templet:function (res) {//0正常 1 低风险 2高风险
+                            if (res.resStatus == '0'){
+                                return '<span class="layui-btn  layui-btn-xs">正常</span>'
+                            }else if (res.resStatus == '1'){
+                                return '<span class="layui-btn layui-btn-warm layui-btn-xs">低风险</span>'
+                            }else if (res.resStatus == '2'){
+                                return '<span class="layui-btn  layui-btn-danger layui-btn-xs" >高风险</span>'
+                            }else {
+                                return '<span class="layui-btn  layui-btn-primary layui-btn-xs" >未知</span>'
+                            }
+                        }
+                    },
+                    {field: 'addHouse', width: 80, title: '楼号',sort: true},
+                    {field: 'addUnit', width: 100, title: '单元号',sort: true},
+                    {field: 'resRemark', width: 170, title: '备注'}
+                ]
+            ],
+            limits: [10, 15, 20, 25, 50, 100],//每页条数的选择项
+            curr: 2,
+            limit: 10,//每页显示的条数
+            page: true,//开启分页
+            skin: 'line',//表格的风格，外观
+            parseData: function (res) {
+                return {
+                    "code":res.code,
+                    "msg":res.msg,
+                    "count":res.count,
+                    "data":res.data.records,
+                };
+            },
+
+        });
+
+
+        // 监听搜索操作
+        form.on('submit(data-search-btn)', function (data) {
+            var result = JSON.stringify(data.field);
+            table.reload('currentTableId', {
+                page: {
+                    curr: 1
+                }
+                , where: {
+                    params: result
+                }
+            }, 'data');
+            return false;
+        });
+
+
+
+
+
+    });
+</script>

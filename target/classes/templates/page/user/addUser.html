@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" href="../lib/layui-v2.5.5/css/layui.css" th:href="@{../lib/layui-v2.5.5/css/layui.css}" media="all">
+    <link rel="stylesheet" href="../css/public.css" th:href="@{../css/public.css}" media="all">
+    <link rel="stylesheet" href="../css/layuimini.css?v=2.0.1" th:href="@{../css/layuimini.css?v=2.0.1}" media="all">
+
+</head>
+<div class="layui-form layuimini-form"  lay-filter="saveBtn">
+    <div class="layui-form-item ">
+        <div class="layui-input-block">
+            <input type="hidden">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required">用户账号</label>
+        <div class="layui-input-block">
+            <input type="text"  name="account" id="account"   placeholder="请输入用户账号" autocomplete="off" class="layui-input">
+            <tip>用户账号确定后不可修改！</tip>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required">密码</label>
+        <div class="layui-input-block">
+            <input type="password" name="password" id="password" lay-verify="required"  placeholder="请输入密码" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">用户名</label>
+        <div class="layui-input-block">
+            <input type="text" name="userName" lay-verify="required" placeholder="请输入用户名" value="" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">手机号</label>
+        <div class="layui-input-block">
+            <input type="text" name="userPhone" lay-verify="required|phone" placeholder="请输入手机号" value="" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">角色名称</label>
+        <div class="layui-input-block">
+            <select name="roleName" lay-verify="required">
+                <option value="">请选择一个角色</option>
+                <option value="admin">管理员</option>
+                <option value="user">用户</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveBtn">确认添加</button>
+        </div>
+    </div>
+</div>
+<script src="../lib/layui-v2.5.5/layui.js" th:src="@{../lib/layui-v2.5.5/layui.js}" charset="utf-8"></script>
+<script src="../js/lay-config.js?v=2.0.0" th:src="@{../js/lay-config.js}" charset="utf-8"></script>
+<script>
+    layui.use(['form', 'table'], function () {
+        var form = layui.form,
+            layer = layui.layer,
+            $ = layui.$;
+
+        /**
+         * 初始化表单，要加上，不然刷新部分组件可能会不加载
+         */
+        form.render();
+
+
+        // 当前弹出层，防止ID被覆盖
+        var parentIndex = layer.index;
+
+        //监听提交
+        form.on('submit(saveBtn)', function (data) {
+            var datas = data.field;
+
+            var loadIndex = layer.load(2);
+            $.ajax({
+                url: '/Users/addUser',
+                type: 'post',
+                data: datas,
+                dataType: "json",
+                success: function (res) {
+                    layer.close(loadIndex);
+                    if (res.code === '200') {
+                        layer.msg(res.msg, {
+                            icon: 6,
+                            time: 1000},function () {
+                            parent.window.location.reload();//刷新页面
+                            var iframeIndex = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(iframeIndex)
+                        });
+                    } else {
+                        layer.msg(res.msg, {icon: 2, time: 1000});
+                    }
+                }, error: function () {
+                    layer.close(loadIndex);
+                    layer.msg('网页出错了,即将跳转异常页', {icon: 2,time:1500});
+                    window.location.href = '/User/404'
+                }
+            });
+            return false;
+        });
+
+    });
+</script>
+</html>

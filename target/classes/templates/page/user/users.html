@@ -1,0 +1,343 @@
+
+<div class="layuimini-container layuimini-page-anim">
+    <div class="layuimini-main">
+
+        <fieldset class="table-search-fieldset">
+            <legend>搜索信息</legend>
+            <div style="margin: 10px 10px 10px 10px">
+                <form class="layui-form layui-form-pane" action="">
+                    <div class="layui-form-item">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">所搜关键字</label>
+                            <div class="layui-input-inline">
+                                <input type="text" id="keyword" name="keyword" autocomplete="off" class="layui-input" placeholder="请输入搜索关键字">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <button type="submit" class="layui-btn layui-btn-primary"  lay-submit lay-filter="data-search-btn"><i class="layui-icon"></i> 搜 索</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </fieldset>
+
+        <script type="text/html" id="toolbarDemo">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add"> 添加 </button>
+                <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="delete"> 删除 </button>
+            </div>
+        </script>
+
+        <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
+
+        <script type="text/html" id="currentTableBar">
+            <a class="layui-btn layui-btn-normal layui-btn-xs data-count-edit" lay-event="edit">编辑</a>
+            <a class="layui-btn layui-btn-xs layui-btn-danger data-count-delete" lay-event="delete">删除</a>
+        </script>
+
+    </div>
+</div>
+<script>
+    layui.use(['form', 'table','miniPage','element','laydate'], function () {
+        var $ = layui.jquery,
+            form = layui.form,
+            table = layui.table,
+            laydate = layui.laydate,
+            miniPage = layui.miniPage;
+
+        table.render({
+            //渲染的表格对应ID
+            elem: '#currentTableId',
+            url: '/Users/queryUserByParam',
+            toolbar: '#toolbarDemo',
+            defaultToolbar: ['filter', 'exports', 'print', {
+                title: '提示',
+                layEvent: 'LAYTABLE_TIPS',
+                icon: 'layui-icon-tips'
+            }],
+            //表头
+            cols: [
+                [
+                {type: "checkbox", width: 80},
+                {field: 'userId', width: 80, title: '编号',sort: true},
+                {field: 'account', width: 150, title: '用户账号'},
+                {field: 'password', width: 180, title: '密码'},
+                {field: 'userName', width: 150, title: '用户名'},
+                {field: 'userPhone', width: 150, title: '手机号',sort: true},
+                {field: 'roleName', width: 150, title: '角色名',
+                    templet:function (res) {
+                    if (res.roleName == 'admin'){
+                        return '<span class="layui-btn layui-btn-normal layui-btn-xs">管理员</span>';
+                    }else if (res.roleName == 'user'){
+                        return '<span class="layui-btn  layui-btn-xs">用户</span>';
+                    }else {
+                        return '<span class="layui-btn  layui-btn-primary layui-btn-xs" >未授权</span>';
+                    }
+
+                    }},
+                {field: 'createTime', width: 120, title: '添加时间',sort: true},
+                {title: '操作', minWidth: 150, toolbar: '#currentTableBar', align: "center"}
+            ]
+            ],
+            limits: [10, 15, 20, 25, 50, 100],//每页条数的选择项
+            curr: 1,
+            limit: 10,//每页显示的条数
+            page: true,//开启分页
+            skin: 'line',//表格的风格，外观
+            parseData: function (res) {
+                return {
+                    "code":res.code,
+                    "msg":res.msg,
+                    "count":res.count,
+                    "data":res.data.records,
+            };
+            },done:function () {
+                //隐藏不需要的列
+                /*$("[data-field='recPersonId']").css('display','none');*/
+            }
+
+        });
+
+
+        // 监听搜索操作
+        form.on('submit(data-search-btn)', function (data) {
+            var result = JSON.stringify(data.field);
+            table.reload('currentTableId', {
+                page: {
+                    curr: 1
+                }
+                , where: {
+                    params: result
+                }
+            }, 'data');
+            return false;
+        });
+
+        /**
+         * toolbar事件监听
+         */
+        table.on('toolbar(currentTableFilter)', function (obj) {
+            if (obj.event === 'add') {   // 监听添加操作
+                var openWH = miniPage.getOpenWidthHeight();
+
+                var index = layer.open({
+                    title: '添加地址信息',
+                    type: 2,
+                    shade: 0,
+                    maxmin:true,
+                    shadeClose: true,
+                    area: ['50%', '90%'],
+                    offset: 'auto',
+                    content: 'addUser'
+                });
+
+                $(window).on("resize", function () {
+                    layer.full(index);
+                });
+            } else if (obj.event === 'delete') {  // 监听删除操作,获取表格中选中的行数据
+                var checkStatus = table.checkStatus('currentTableId');
+                // 获取被选中记录对应的数据
+                var saleChanceData = checkStatus.data;
+                if (saleChanceData.length === 0) {
+                    layer.msg('请选择要删除的数据', {icon: 2});
+                    return;
+                }
+
+                layer.confirm('确定删除选中数据？',{icon:3,title:"登记信息管理"},function (index) {
+                    //关闭确认框
+                    layer.close(index);
+                    //传递的参数是数组，获取传递的ID
+                    var ids = "ids=";
+                    //循环获取选中的行的数据
+                    for (var i=0;i<saleChanceData.length;i++)
+                    {
+                        if (i < saleChanceData.length-1)
+                        {
+                            ids = ids+saleChanceData[i].userId+"&ids="
+                        }else {
+                            ids = ids+saleChanceData[i].userId
+                        }
+                    }
+                    //向服务器发送删除指令  多个删除
+                    $.ajax({
+                        url:'/Users/deleteUser',
+                        type:'POST',
+                        data:ids,
+                        success:function (suc) {
+                            if (suc.code == '200')
+                            {
+                                layer.msg("删除用户成功！",{icon:6,time:1000});
+                                parent.window.location.reload();
+                            }else {
+                                layer.msg("删除用户失败！",{icon:5,time:1000});
+                            }
+                        }
+                    });
+                });
+
+
+            }
+        });
+
+
+        //监听表格复选框选择
+        table.on('checkbox(currentTableFilter)', function (obj) {
+            // console.log(obj)
+        });
+
+
+
+        table.on('tool(currentTableFilter)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'edit') {
+                //使用弹出层
+                layer.open({
+                    title: '修改信息',
+                    type: 1,
+                    shade: 0.0,
+                    maxmin:true,
+                    shadeClose: true,
+                    area: ['50%', '80%'],
+                    offset:  ['100px', '20%'],
+                    content: $("#updateUser")
+                });
+                    setFormValue(obj,data);
+
+                return false;
+            } else if (obj.event === 'delete') {
+                layer.confirm('确定删除选中数据？',{icon:3,title:"登记信息管理"},function (index) {
+                    //关闭确认框
+                    layer.close(index);
+                    //向服务器发送删除指令  单个删除
+                    $.ajax({
+                        url:'/Users/deleteUser',
+                        type:'POST',
+                        data:{
+                            'ids':obj.data.userId
+                        },
+                        success:function (suc) {
+                            if (suc.code == '200')
+                            {
+                                layer.msg("删除用户成功！",{icon:6,time:1000});
+                                /**parent.window.location.reload();**/
+                            }else {
+                                layer.msg("删除用户失败！",{icon:5,time:1000});
+                            }
+                        }
+                    })
+                });
+
+            }
+        });
+
+
+        //更改用户信息
+        function setFormValue(obj,data) {
+            if (data.roleName == 'admin')
+            {
+                document.getElementById('roleName').value = "admin";
+            }else if (data.roleName == 'user'){
+                document.getElementById('roleName').value = "user";
+            }
+
+            form.val("updateBtn",{
+
+                "userId":data.userId,
+                "account":data.account,
+                "password":data.password,
+                "userName":data.userName,
+                "userPhone":data.userPhone,
+            });
+        }
+        form.on('submit(updateBtn)',function (data) {
+            datas = data.field;
+            $.ajax({
+                url: '/Users/updateUser',
+                type: 'post',
+                data: datas,
+                dataType: "json",
+                success: function (res) {
+                    if (res.code == '200') {
+                        layer.msg("修改成功！", {
+                            icon: 6,
+                            time: 300},function () {
+                            parent.window.location.reload();//刷新页面
+                            var iframeIndex = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(iframeIndex)
+                        });
+                    } else {
+                        layer.msg("修改失败！", {icon: 2});
+                    }
+                }, error: function (data) {
+                    layer.close(loadIndex);
+                    layer.msg(data.responseJSON.msg, {icon: 2});
+                }
+            });
+            return false;
+        });
+
+
+
+
+    });
+
+</script>
+
+<div class="layui-form layuimini-form" id="updateUser" style="display: none" lay-filter="updateBtn">
+    <div class="layui-form-item ">
+        <div class="layui-input-block">
+            <input type="hidden">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required">用户编号</label>
+        <div class="layui-input-block">
+            <input type="text" readonly="readonly" name="userId" id="userId"   placeholder="请输入用户编号" autocomplete="off" class="layui-input">
+            <tip>地址编号不可修改！</tip>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required">用户账号</label>
+        <div class="layui-input-block">
+            <input type="text" readonly="readonly" name="account" id="account"   placeholder="请输入用户账号" autocomplete="off" class="layui-input">
+            <tip>用户账号不可修改！</tip>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required">密码</label>
+        <div class="layui-input-block">
+            <input type="password" name="password" id="password" lay-verify="required"  placeholder="请输入密码" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">用户名</label>
+        <div class="layui-input-block">
+            <input type="text" name="userName" lay-verify="required" placeholder="请输入用户名" value="" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">手机号</label>
+        <div class="layui-input-block">
+            <input type="text" name="userPhone" lay-verify="required|phone" placeholder="请输入手机号" value="" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">角色名称</label>
+        <div class="layui-input-inline">
+            <select name="roleName"  id="roleName" lay-verify="required">
+                <option value="select">请选择一个角色</option>
+                <option value="admin">管理员</option>
+                <option value="user">用户</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="updateBtn">确认更新</button>
+        </div>
+    </div>
+</div>
