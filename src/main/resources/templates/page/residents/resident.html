@@ -50,8 +50,8 @@
                 <button type="submit" class="layui-btn layui-btn-sm" lay-submit lay-filter="data-all"><i
                         class="layui-icon layui-icon-home"></i>全部业主
                 </button>
-                <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add"> 添加</button>
-                <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="delete"> 删除</button>
+                <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add"> 添加业主</button>
+                <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="delete"> 批量删除</button>
                 <button class="layui-btn layui-btn-sm " id="upload">上传文件
                 </button>
             </div>
@@ -59,7 +59,7 @@
 
         <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
 
-        <script type="text/html" id="currentTableBar">
+        <script type="text/html" id="currentTableBar" >
             <a class="layui-btn layui-btn-normal layui-btn-xs data-count-edit" lay-event="edit">编辑</a>
             <a class="layui-btn layui-btn-xs layui-btn-danger data-count-delete" lay-event="delete">删除</a>
         </script>
@@ -77,6 +77,7 @@
             laydate = layui.laydate,
             miniPage = layui.miniPage,
             upload = layui.upload;
+
         table.render({
             //渲染的表格对应ID
             elem: '#currentTableId',
@@ -122,7 +123,7 @@
                     {field: 'addHouse', width: 80, title: '楼号', sort: true},
                     {field: 'addUnit', width: 100, title: '单元号', sort: true},
                     {field: 'resRemark', width: 170, title: '备注'},
-                    {title: '操作', minWidth: 130, toolbar: '#currentTableBar', align: "center"}
+                    {title: '操作', minWidth: 130, fixed: 'right',toolbar: '#currentTableBar', align: "center",}
                 ]
             ],
             limits: [10, 15, 20, 25, 50, 100],//每页条数的选择项
@@ -169,6 +170,7 @@
             }, 'data');
             return false;
         });
+
         //文件上传操作
         upload.render({
             elem: '#upload' //绑定元素
@@ -192,9 +194,10 @@
          * toolbar事件监听
          */
         table.on('toolbar(currentTableFilter)', function (obj) {
+
             if (obj.event === 'add') {   // 监听添加操作
                 var openWH = miniPage.getOpenWidthHeight();
-
+                var data = obj.data;
                 var index = layer.open({
                     title: '添加用户',
                     type: 2,
@@ -205,6 +208,8 @@
                     offset: 'auto',
                     content: 'addResident',
                 });
+                // setFormValue(obj,data);
+
                 $(window).on("resize", function () {
                     layer.full(index);
                 });
@@ -273,6 +278,7 @@
                     content: $("#updateRes")
                 });
                 setFormValue(obj, data);
+
                 return false;
             } else if (obj.event === 'delete') {
                 console.log(obj.data.resId)
@@ -289,7 +295,7 @@
                         success: function (suc) {
                             if (suc.code == 200) {
                                 layer.msg("删除业主信息成功！", {icon: 6, time: 1000});
-                                /**parent.window.location.reload();**/
+                                parent.window.location.reload();
                             } else {
                                 layer.msg("删除业主信息失败！！！", {icon: 5, time: 1000});
                             }
@@ -334,10 +340,11 @@
             });
             boy.removeAttribute("checked");
             girl.removeAttribute("checked");
+
         }
 
         form.on('submit(updateSubmit)', function (data) {
-            var datas = data.field;
+            datas = data.field;
 
             if (datas.resSex == '男') {
                 datas.resSex = 0;

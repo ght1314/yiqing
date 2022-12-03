@@ -86,13 +86,13 @@
                 dataType: "json",
                 success: function (res) {
                     layer.close(loadIndex);
-                    if (res.code === '200') {
+                    if (res.code === 200) {
                         layer.msg(res.msg, {
                             icon: 6,
                             time: 1000},function () {
                             parent.window.location.reload();//刷新页面
-                            var iframeIndex = parent.layer.getFrameIndex(window.name);
-                            parent.layer.close(iframeIndex)
+                            // var iframeIndex = parent.layer.getFrameIndex(window.name);
+                            // parent.layer.close(iframeIndex)
                         });
                     } else {
                         layer.msg(res.msg, {icon: 2, time: 1000});

@@ -23,8 +23,8 @@
 
         <script type="text/html" id="toolbarDemo">
             <div class="layui-btn-container">
-                <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add"> 添加 </button>
-                <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="delete"> 删除 </button>
+                <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add"> 添加用户 </button>
+                <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="delete"> 批量删除 </button>
             </div>
         </script>
 
@@ -79,7 +79,7 @@
 
                     }},
                 {field: 'createTime', width: 120, title: '添加时间',sort: true},
-                {title: '操作', minWidth: 150, toolbar: '#currentTableBar', align: "center"}
+                {title: '操作', minWidth: 150, fixed: 'right', toolbar: '#currentTableBar', align: "center"}
             ]
             ],
             limits: [10, 15, 20, 25, 50, 100],//每页条数的选择项
@@ -124,9 +124,9 @@
                 var openWH = miniPage.getOpenWidthHeight();
 
                 var index = layer.open({
-                    title: '添加地址信息',
+                    title: '添加用户信息',
                     type: 2,
-                    shade: 0,
+                    shade: 0.2,
                     maxmin:true,
                     shadeClose: true,
                     area: ['50%', '90%'],
@@ -197,7 +197,7 @@
                 layer.open({
                     title: '修改信息',
                     type: 1,
-                    shade: 0.0,
+                    shade: 0.01,
                     maxmin:true,
                     shadeClose: true,
                     area: ['50%', '80%'],
@@ -222,7 +222,9 @@
                             if (suc.code == '200')
                             {
                                 layer.msg("删除用户成功！",{icon:6,time:1000});
-                                /**parent.window.location.reload();**/
+                                setTimeout(function(){
+                                    parent.window.location.reload();
+                                },1200)
                             }else {
                                 layer.msg("删除用户失败！",{icon:5,time:1000});
                             }
@@ -252,6 +254,7 @@
                 "userPhone":data.userPhone,
             });
         }
+
         form.on('submit(updateBtn)',function (data) {
             datas = data.field;
             $.ajax({

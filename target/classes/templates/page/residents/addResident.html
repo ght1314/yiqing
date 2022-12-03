@@ -24,9 +24,13 @@
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label required">性别</label>
+<!--            <div class="layui-input-block">-->
+<!--                <input type="radio" name="resSex" id="boy" value="男" title="男">-->
+<!--                <input type="radio" name="ressex" id="girl" value="女" title="女" checked>-->
+<!--            </div>-->
             <div class="layui-input-block">
                 <input type="radio" name="resSex" id="boy" value="男" title="男">
-                <input type="radio" name="ressex" id="girl" value="女" title="女">
+                <input type="radio" name="resSex" id="girl" value="女" title="女" checked>
             </div>
         </div>
         <div class="layui-form-item">
@@ -69,9 +73,9 @@
             </div>
         </div>
 
-
         <div class="layui-form-item">
             <div class="layui-input-block">
+                <button class="layui-btn layui-btn-danger" lay-submit id="closeBtn" >取消添加</button>
                 <button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveBtn">确认添加</button>
             </div>
         </div>
@@ -104,6 +108,15 @@
             }
         );
 
+        //方法提交
+        $('#closeBtn').on('click', function(data){
+            console.log("关闭")
+            var iframeIndex = parent.layer.getFrameIndex(window.name);
+            parent.layer.close(iframeIndex)
+            return false;
+        });
+
+
         //监听提交
         form.on('submit(saveBtn)', function (data) {
             var datas = data.field;
@@ -125,19 +138,23 @@
                             icon: 6,
                             time: 1000},function () {
                             parent.window.location.reload();//刷新页面
-                            var iframeIndex = parent.layer.getFrameIndex(window.name);
-                            parent.layer.close(iframeIndex)
+                            // var iframeIndex = parent.layer.getFrameIndex(window.name);
+                            // parent.layer.close(iframeIndex)
                         });
+                        return true;
                     } else {
-                        layer.msg(res.msg, {icon: 2});
+                        layer.msg(res.msg, {icon: 2,time: 1000});
+                        parent.window.location.reload();//刷新页面
+                        return false;
                     }
                 }, error: function () {
                     layer.close(loadIndex);
                     layer.msg('网页出错了,即将跳转异常页', {icon: 2,time:1500});
                     window.location.href = '/User/404'
+                    return false;
                 }
             });
-            return false;
+
         });
 
     });
