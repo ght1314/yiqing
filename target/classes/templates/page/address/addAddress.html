@@ -16,21 +16,21 @@
     <div class="layui-form-item">
         <label class="layui-form-label required">小区名称</label>
         <div class="layui-input-block">
-            <input type="text" name="addName" id="addName" lay-verify="required"  placeholder="请输入小区名称" autocomplete="off" class="layui-input">
+            <input style="width: 70%" type="text" name="addName" id="addName" lay-verify="required"  placeholder="请输入小区名称" autocomplete="off" class="layui-input">
         </div>
     </div>
 
     <div class="layui-form-item">
         <label class="layui-form-label required">楼号</label>
         <div class="layui-input-block">
-            <input type="text" name="addHouse" lay-verify="required" placeholder="请输入楼号" value="" class="layui-input">
+            <input style="width: 70%" type="text" name="addHouse" lay-verify="required" placeholder="请输入楼号" value="" class="layui-input">
         </div>
     </div>
 
     <div class="layui-form-item">
         <label class="layui-form-label">单元号</label>
         <div class="layui-input-block">
-            <input type="text" name="addUnit" lay-verify="required"  placeholder="请输入单元号" value="" class="layui-input">
+            <input style="width: 70%" type="text" name="addUnit" lay-verify="required"  placeholder="请输入单元号" value="" class="layui-input">
         </div>
     </div>
 
@@ -44,6 +44,7 @@
     <div class="layui-form-item">
         <div class="layui-input-block">
             <button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveBtn">确认添加</button>
+            <button class="layui-btn layui-btn-danger" lay-submit lay-event="close">取消添加</button>
         </div>
     </div>
 </div>
